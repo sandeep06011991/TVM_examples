@@ -5,17 +5,17 @@ Chapter 1:
 	b. Optimize Tensor Operators(https://tvm.apache.org/docs/tutorials/index.html#optimize-tensor-operators)
 
 
-1. Tutorial 1:
+1. Tutorial 1: (DONE)
 	Create a custom operator a(OP)b.
-	Generate code for it in CUDA and cpu. 
+	Generate naive code for in CUDA. 
 
-2. Tutorial 2:
+2. Tutorial 2: (DONE)
+	Generate 2 kernels to evaluate a composition. 
 	Transform a(OP)b(OP)c  into OP(a,b,c)
+	Try Fusion (Is there an optimization which can do this)
 
-3. Tutorial 3:
-	Transform code with tiling and spliting
-	Lowering with code gen
-
+3. Tutorial 3: 
+	Matrix Transpose
 
 5. Final Deliverable:
 	
