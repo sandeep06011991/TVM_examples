@@ -103,30 +103,33 @@ def naive_approach():
     n = te.var("n")
     m = te.var("m")
     A = te.placeholder((m, n), name="A")
-    B = te.compute((m, n), lambda i, j: A[j,i], name="B")
-    s = te.create_schedule([B.op])
-    s[B].bind(B.op.axis[0],te.thread_axis("blockIdx.x"))
-    s[B].bind(B.op.axis[1],te.thread_axis("threadIdx.x"))
-    naive = tvm.build(s,[A,B],target="cuda",name="transpose")
+    B = te.placeholder((m,n), name = "B")
+    k = te.reduce_axis((0,n),"k")
+    C = te.compute((m,), lambda i: te.sum(A[i,k]*B[i,k], axis=k), name="C")
+    s = te.create_schedule([C.op])
+    s[C].bind(C.op.axis[0],te.thread_axis("blockIdx.x"))
+    #s[B].bind(B.op.axis[1],te.thread_axis("threadIdx.x"))
+    naive = tvm.build(s,[A,B,C],target="cuda",name="transpose")
     return naive
 
 
-def measure_performance(size,transpose_function,string):
+def measure_performance(size,dot_function,string):
     ctx = tvm.context('gpu')
     M = np.array([[i for i in range(size)] for i in range(size)], dtype = np.float32)
     A_1 = tvm.nd.array(M,ctx)
     B_1 = tvm.nd.array(np.ones((size,size),dtype=np.float32),ctx)
+    C_1 = tvm.nd.array(np.ones((size),dtype=np.float32),ctx)
     s = time.time()
     for i in range(10):
-        transpose_function(A_1,B_1)
+        dot_function(A_1,B_1,C_1)
         ctx.sync()
     e = time.time()
     #print(A_1)
     #print(B_1)
     print(string,(e-s)/10)
 
-#F = naive_approach()
-#measure_performance(1024,F,"Naive Appraoch")
+F = naive_approach()
+measure_performance(1024,F,"Naive Appraoch")
 
 #F = get_shared_but_not_tiled()
 #measure_performance(32,F,"Shared but not Tiled")
@@ -134,7 +137,7 @@ def measure_performance(size,transpose_function,string):
 #F = tiled_but_not_shared()
 #measure_performance(1024,F,"Tiled but not shared")
 
-F = tiled_and_shared()
-measure_performance(1024,F,"Tiled Shared")
+#F = tiled_and_shared()
+#measure_performance(1024,F,"Tiled Shared")
 
 #operator_review()
